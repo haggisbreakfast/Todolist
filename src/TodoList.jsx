@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { generateRandomId } from "./utils";
 import tasks from "./tasks.json";
+import { getTasks } from "./task-svc";
 
 class Loading extends Component {
   render() {
@@ -45,7 +46,10 @@ class NewTaskForm extends Component {
 export default class TodoList extends Component {
   constructor(props) {
     super();
-    this.state = { tasks };
+    this.state = {
+      tasks: [],
+      loading: true
+    };
     this.addTask = this.addTask.bind(this);
   }
   addTask(task) {
@@ -58,11 +62,23 @@ export default class TodoList extends Component {
     const newTasks = [...oldTasks, newTask];
     this.setState({ tasks: newTasks });
   }
+  componentDidMount() {
+    getTasks().then(tasks => {
+      this.setState({
+        loading: false,
+        tasks: tasks
+      });
+    });
+  }
   render() {
     const taskItems = this.state.tasks.map(task => (
       <TodoListItem key={task.id} task={task} />
     ));
-    console.log("Rendering", this.state);
+    let output = taskItems;
+    if (this.state.loading) {
+      output = <Loading />;
+    }
+
     return (
       <div className="container">
         <h1>
@@ -77,7 +93,7 @@ export default class TodoList extends Component {
               <td>Done?</td>
             </tr>
           </thead>
-          <tbody>{taskItems}</tbody>
+          <tbody>{output}</tbody>
         </table>
 
         <hr />
